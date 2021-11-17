@@ -1,0 +1,5 @@
+.target/
+.undodir/
+target/
+.stfolder
+**/tags

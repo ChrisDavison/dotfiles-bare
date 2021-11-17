@@ -1,0 +1,69 @@
+[user]
+    name=Chris Davison
+    email=c.jr.davison@gmail.com
+[advice]
+    ignoreHook=false
+[pull]
+    rebase=true
+[push]
+    default=simple
+[merge]
+    ff=false
+[rebase]
+    autosquash=true
+    autostash=true
+[help]
+    autocorrect=5
+[status]
+    submodulesummary=1
+[diff]
+    submodule=log
+[alias]
+    uncommit=reset --soft HEAD^
+    unstage=reset HEAD --
+    discard=checkout --
+    staged=diff --cached
+    l=log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+    d=diff -w
+    dw=diff -w --word-diff
+    s=status -s -b
+    branch-name=rev-parse --abbrev-ref HEAD
+    branches=branch -a
+    bd=branch -D
+    fat=fetch --all --tags --prune
+    tags=tag
+    stashes=stash list
+    sshow=stash show --text
+    scl=stash clear
+    a=add
+    aa=add --all
+    ap=add --patch
+    c=commit -v
+    ca=commit -v --amend
+    can=commit -v --amend --no-edit
+    co=checkout
+    cob=checkout -b
+    wch=whatchanged -p --abbrev-commit --pretty=medium
+    # Push branch to remote
+    publish="!git push -u origin $(git branch-name)"
+    # Remove branch from remote
+    unpublish="!git push origin :$(git branch-name)"
+    sa="!git submodule add https://github.com/$@"
+    wip="for-each-ref --sort='authordate:iso8601' --format=' %(color:green)%(authordate:relative)%09%(color:white)%(refname:short)' refs/heads"
+    frbi = "!f() { git rebase -i $(git log --pretty=oneline --color=always | fzf --ansi | cut -d ' ' -f1)^ ; }; f"
+    em = "!f() { $EDITOR $(git ls-files -m -o --exclude-standard | fzf -m --ansi) ;}; f"
+    backup = "!f() { git add --all && git commit -m \"backup $(date +'%F %H:%M')\" && git push ;}; f"
+    gignore = "!f() { echo $1 >> ~/.gitignore ;}; f"
+[core]
+    excludesfile = ~/.global_ignore
+    commitGraph = true
+    pager="less -FRSX"
+    ignoreCase = true
+[wc]
+    writeCommitGraph = true
+[commit]
+	verbose = true
+[github]
+    user=ChrisDavison
+[init]
+	defaultBranch = master

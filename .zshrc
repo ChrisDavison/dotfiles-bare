@@ -499,4 +499,3 @@ antigen apply
 # fi
 
 export PATH="$HOME/.poetry/bin:$PATH"
-alias config='/usr/bin/git --git-dir=/home/davison/.dotfiles/ --work-tree=/home/davison'
