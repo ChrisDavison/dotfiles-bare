@@ -1,0 +1,31 @@
+{
+    "list.source.grep.command": "rg",
+    "list.source.grep.args": [
+        "--smart-case"
+    ],
+    "suggest.minTriggerInputLength": 3,
+    "suggest.autoTrigger": "always",
+    "suggest.triggerAfterInsertEnter": true,
+    "suggest.enablePreview": true,
+    "suggest.floatEnable": true,
+    "suggest.echodocSupport": true,
+    "codeLens.enable": true,
+    "diagnostic.enable": false,
+    "suggest.noselect": false,
+    "coc.preferences.formatOnSaveFiletypes": [
+        "rust",
+        "go"
+    ],
+    "coc.preferences.hoverTarget": "float",
+    "python.jediEnabled": false,
+    "jedi.enable": false,
+    "jedi.startupMessage": false,
+    "jedi.markupKindPreferred": "markdown",
+    "languageServer": { },
+    "rust-analyzer.serverPath": "/usr/local/bin/rust-analyzer",
+    "rust-analyzer.trace.server": "verbose",
+    "rust-analyzer.checkOnSave.command": "clippy",
+    "rust-analyzer.inlayHints.chainingHints": true,
+    "rust-analyzer.inlayHints.chainingHintsSeparator": "→ ",
+    "rust-analyzer.inlayHints.typeHintsSeparator": "→ "
+}
