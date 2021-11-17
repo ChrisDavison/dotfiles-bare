@@ -1,0 +1,397 @@
+#+TITLE: Unused Config
+
+Stuff that I'm not currently using.
+
+It's moved out of =config.org= so that I can focus my searches etc. inside there, as well as save this as a buffer between disuse and deletion (should I want to use it again, or use it for reference).
+
+* FUNC - Org files for specific dates
+
+Used to get files in a specific directory of the format =<DIR>/<SUBDIR>/2021-01-01.org=.
+
+This was primarily used for journal and logbook targets in org capture.
+
+#+begin_src emacs-lisp
+(defun cd/org-file-today (subdir)
+  (f-join org-directory subdir (format-time-string "%Y-%m-%d.org")))
+
+(defun cd/org-file-future (subdir)
+  (let* ((future (org-read-date)))
+    (setq cd/last-future-date future)
+    (f-join org-directory subdir (concat future ".org"))))
+#+end_src
+* FUNC - Org refile to something matching a regexp
+
+Refile to a regexp in current dir, matching target
+#+BEGIN_SRC emacs-lisp :tangle no
+(defun cd/refile-here-with-regexp (&optional RE)
+  (interactive)
+  (let* ((RE (if RE RE (read-string "Regexp: ")))
+         (org-refile-targets `((,(buffer-file-name) . (:regexp . ,RE)))))
+    (org-refile)))
+#+END_SRC
+* FUNC - ADVICE - Refresh WSL before opening org links
+
+Ensure I'm using the correct wsl interop socket, as running emacs via ~setsid~ causes a separate terminal to be launched. (Not sure if this is needed, now that I'm sourcing =wsl.sh= in by WSL helper bat script).
+
+#+BEGIN_SRC emacs-lisp :tangle no
+;; (defadvice! +refresh-wsl-interop (orig-fn &rest args)
+;;   "Ensure that we can open urls from WSL"
+;;   :before #'org-open-at-point
+;;   (progn (wsl_interop)
+;;          (if args (apply orig-fn args)
+;;            orig-fn)))
+#+END_SRC
+* FUNC - Logbook/file per day, and enumerated thoughts
+
+#+BEGIN_SRC emacs-lisp :tangle no
+;;; Org CAPTURE
+(defun cd/todays-logbook ()
+  (interactive)
+  (let ((fname (format-time-string "%Y-%m-%d.org")))
+    (f-join org-directory "logbook" fname)))
+
+(defun cd/find-todays-logbook ()
+  (interactive)
+  (find-file (cd/todays-logbook)))
+
+(defun cd/current-thought ()
+  (let* ((dir (f-join org-directory "thoughts"))
+         (files (sort (find-lisp-find-files dir "\.org$") 's-less?)))
+    (car (last files))))
+
+(defun cd/find-current-thought ()
+  (interactive)
+  (find-file (cd/current-thought)))
+
+(defun cd/next-thought ()
+  (let* ((current (cd/current-thought))
+         (parts (s-split "--" (file-name-base current)))
+         (ymd-current (nth 0 parts))
+         (ymd-today (format-time-string "%Y-%m-%d"))
+         (num (if (s-equals? ymd-current ymd-today)
+                  (format "%03d" (+ 1 (string-to-number (nth 1 parts))))
+                "001"))
+         (filename (format "%s--%s.org" ymd-today num))
+         (next-fname (f-join org-directory "thoughts" filename)))
+    next-fname))
+
+(defun cd/new-thought ()
+  (interactive)
+  (find-file (cd/next-thought)))
+#+END_SRC
+
+
+* FUNC - Heading with an emoji
+
+A helper function to easily add an icon:
+#+BEGIN_SRC emacs-lisp
+(defun emoji-heading (fontfunc fonticon headingname)
+  (let ((icon (funcall fontfunc fonticon :face 'all-the-icons-purple :v-adjust 0.01)))
+    (format "%s %s" icon headingname)))
+
+(defun faicon-heading (icon msg)
+  (emoji-heading 'all-the-icons-faicon icon msg))
+
+(defun octicon-heading (icon msg)
+  (emoji-heading 'all-the-icons-octicon icon msg))
+#+END_SRC
+
+* Org Capture - FUNC for capturing literature
+
+#+BEGIN_SRC emacs-lisp
+;;; org-capture for literature
+(defun read-capitalized-title ()
+  (s-titleize (read-string "Title: ")))
+
+(defun read-author ()
+  (let ((name (read-string "Author: " "" nil nil)))
+    (if (s-equals? name "")
+        nil
+      (format-author-name name))))
+
+(defun format-author-name (author)
+  (concat (seq-mapcat
+           (lambda (author-part)
+             (if (> (length author-part) 1)
+                 (s-concat " " (s-capitalize author-part))
+               (s-concat (s-capitalize author-part) ".")))
+           (s-split " " author))))
+
+(defun maybe-get-bibtex ()
+  "Maybe get a DOI number for a reference"
+  (let ((doi (read-string "DOI: " "" nil nil)))
+    (if (s-equals? doi "")
+        nil
+      (s-concat ("\n")))))
+
+(defun read-authors ()
+  (let ((authors (read-author))
+        (running t))
+    (while running
+      (let ((input (read-author)))
+        (if (s-equals? input nil)
+            (setq running nil)
+          (setq authors (concat authors " and " input)))))
+    authors))
+#+END_SRC
+
+
+* Org-Roam
+:PROPERTIES:
+:ID:       f498efba-bf8c-4e38-8ae7-7cbf6aa2b653
+:END:
+
+Removed org-roam as the =v2= release would make links basically broken when using github as a mobile org viewer.
+
+Went back to /few, large files/ with plain internal links and org-mode linking (which I believe /should/ export to html links if necessary)
+
+org-roam settings, and use the new 'slugger'.
+
+-----
+
+
+First, I don't want ~org-roam~ to prepend a filename with the date when I'm creating a new file, so I need to change the function used to create the file 'slug'. This function is basically a clone of the normal ~org-roam--title-to-slug~ function, but I've changed the separator char from =_= to =-= and I've removed the date.
+#+BEGIN_SRC emacs-lisp
+(defun cd/org-roam--title-to-slug (title)
+  "Convert TITLE to a filename-suitable slug."
+  (cl-flet* ((nonspacing-mark-p (char)
+                                (eq 'Mn (get-char-code-property char 'general-category)))
+             (strip-nonspacing-marks (s)
+                                     (apply #'string (seq-remove #'nonspacing-mark-p
+                                                                 (ucs-normalize-NFD-string s))))
+             (cl-replace (title pair)
+                         (replace-regexp-in-string (car pair) (cdr pair) title)))
+    (let* ((pairs `(("[^[:alnum:][:digit:]/]" . "-")  ;; convert anything not alphanumeric
+                    ("\-\-*" . "-")  ;; remove sequential underscores
+                    ("^\-" . "")  ;; remove starting underscore
+                    ("\-$" . "")))  ;; remove ending underscore
+           (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
+      (downcase slug))))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(setq org-roam-directory (f-join my-code-dir "knowledge"))
+(setq +org-roam-open-buffer-on-find-file t)
+(setq org-roam-rename-file-on-title-change nil)
+(setq org-roam-tag-sources '(prop all-directories))
+;; (setq org-roam-tag-sources '(prop))
+(setq org-roam-title-to-slug-function 'cd/org-roam--title-to-slug)
+(setq org-roam-capture-templates '(("d" "default" plain #'org-roam-capture--get-point "%?"
+                                    :file-name "${slug}"
+                                    :head "#+title: ${title}\n"
+                                    :unnarrowed t)))
+(setq org-roam-buffer-width 0.25)
+#+END_SRC
+
+
+
+#+begin_src emacs-lisp
+(defun jump-to-work-project ()
+  (interactive)
+  (org-roam-find-file "@work "))
+#+end_src
+
+Capture keybinds
+
+#+begin_src emacs-lisp
+(map! :mode org-mode :leader
+      "n r c" 'org-roam-capture
+      "n r f" 'org-roam-node-find)
+#+end_src
+
+Functions to insert org-roam links
+
+#+begin_src emacs-lisp
+(defun cd/org-roam-insert-to-see-also ()
+  (interactive)
+  (save-excursion
+    (unless (re-search-forward "^\* See Also" nil t)
+      (goto-char (point-max))
+      (evil-insert-newline-below)
+      (insert "* See Also\n\n"))
+
+    (org-narrow-to-subtree)
+    (goto-char (point-max))
+    (insert "- ")
+    (org-roam-node-insert)
+    (widen)))
+
+(defun org-roam-create-note-from-headline ()
+  "Create an Org-roam note from the current headline and jump to it.
+
+Normally, insert the headline’s title using the ’#title:’ file-level property
+and delete the Org-mode headline. However, if the current headline has a
+Org-mode properties drawer already, keep the headline and don’t insert
+‘#+title:'. Org-roam can extract the title from both kinds of notes, but using
+‘#+title:’ is a bit cleaner for a short note, which Org-roam encourages."
+  (interactive)
+  (let ((title (nth 4 (org-heading-components)))
+        (has-properties (org-get-property-block)))
+    (org-cut-subtree)
+    (org-roam-find-file title nil nil 'no-confirm)
+    (org-paste-subtree)
+    (unless has-properties
+      (kill-line)
+      (while (outline-next-heading)
+        (org-promote)))
+    (goto-char (point-min))
+    (when has-properties
+      (kill-line)
+      (kill-line))))
+
+(defun org-file-from-subtree (&optional arg)
+  "Take the current subtree and create a new file from
+  it. Add a link at the top of the file in the first pre-header list.
+
+In the new file, promote all direct children of the original
+  subtree to be level 1-headings, and transform the original
+  heading into the '#+TITLE' parameter.
+
+If called with the universal argument, prompt for new filename,
+otherwise use the subtree title.
+
+With ARG, also visit the file.
+"
+  (interactive "P")
+  (let* ((curdir (file-name-directory (buffer-file-name)))
+         (filename (read-file-name "File: " curdir))
+         (link (file-relative-name filename curdir))
+         (title (filename-to-pretty-title filename))
+         (link-text (format "[[file:%s][%s]]" link title))
+         (curfile-relative-to-new (file-relative-name (buffer-file-name) (file-name-directory filename)))
+         (curfile-title (filename-to-pretty-title buffer-file-name))
+         (curfile-link (format "[[file:%s][%s]]" curfile-relative-to-new curfile-title)))
+    ;; Copy current subtree into clipboard
+    (org-cut-subtree)
+
+    (save-excursion
+      (create-or-add-to-see-also-header link-text)
+      ;; (cd/insert-in-toplevel-list link-text)
+      )
+    (save-buffer)
+
+    (with-temp-file filename
+      (org-mode)
+      (insert "#+TITLE: " title "\n\n")
+      (org-paste-subtree)
+      (create-or-add-to-see-also-header curfile-link))
+
+    (when arg
+      (find-file filename)))
+  (org-roam-db-build-cache))
+#+end_src
+
+* Programming - Julia
+
+#+begin_src emacs-lisp
+(defun run-julia ()
+  "Launch julia in a term buffer."
+  (interactive)
+  (set-buffer (make-term "julia" "julia"))
+  (term-mode)
+  (term-char-mode)
+  (switch-to-buffer "*julia*"))
+#+end_src
+* FUNC - Jump to my =ahk= keybinds
+
+#+begin_src emacs-lisp
+(defun cd/ahk-keybinds ()
+  (interactive)
+  (find-file "/mnt/c/ahk/keybinds.ahk"))
+#+end_src
+* FUNC - Narrows
+:PROPERTIES:
+:ID:       ee51760f-591d-42d6-b30e-2e8f2685baff
+:END:
+
+#+BEGIN_SRC emacs-lisp
+;;; Navigate narrows
+(defun next-narrow (&optional backwards)
+  (interactive)
+  (progn
+    (beginning-of-buffer)
+    (widen)
+    (if backwards (outline-previous-heading) (outline-next-heading))
+    (org-narrow-to-subtree)))
+#+END_SRC
+
+* FUNC - Find file, with filtered file list
+
+#+begin_src emacs-lisp
+(defun find-file-filtered (dir ignores)
+  (let* ((files (find-lisp-find-files org-directory ".\.org$"))
+         (tidy-ignores (s-join "|" ignores))
+         (filtered (--filter (not (s-matches? it tidy-ignores)) files))
+         (shortened (--map (f-relative it org-directory) filtered))
+         (choice (completing-read "File: "
+                                  (sort shortened 'string-lessp))))
+    (find-file (f-join org-directory choice))))
+#+end_src
+* Cycling
+
+** Jump to the table with todays' cycling training
+#+BEGIN_SRC emacs-lisp
+(defun cd/goto-todays-cycling ()
+  (interactive)
+  (let* ((path (f-join org-directory "health-and-fitness" "cycling.org"))
+         (thisyear (string-to-number (format-time-string "%Y")))
+         (thisweek (string-to-number (format-time-string "%W")))
+         (lastweek (if (eq thisweek 1) 52 (- thisweek 1)))
+         (last-weeks-year (if (eq lastweek 52) (- thisyear 1) thisyear))
+         (header (format "%4d W%2d" thisyear thisweek))
+         (header-lastweek (format "%4d W%2d" last-weeks-year lastweek)))
+    (find-file path)
+    (+org/open-all-folds)
+    (goto-char (point-min))
+    (when (not (re-search-forward header nil t))
+      (re-search-forward header-lastweek)
+      (org-insert-heading)
+      (yas-expand-snippet (yas-lookup-snippet "Week of Cycling Training")))
+    (re-search-forward "^|") ;; Go to start of table
+    (evil-beginning-of-line)
+    (while  (s-matches? "^|" (thing-at-point 'line t)) ;; test first char on line == |
+      (move-beginning-of-line 2))
+    (previous-line)
+    (org-narrow-to-subtree)))
+#+END_SRC
+
+** Summarise my cycling training
+
+#+BEGIN_SRC emacs-lisp
+(defun cd/cycling-tss-summary ()
+  (interactive)
+  (let* ((fname (f-join org-directory "health-and-fitness" "cycling.org"))
+         (contents (s-split "\n" (read-file-to-string fname)))
+         (rx-to-match (s-join "\\|" '("[0-9]+ W[0-9]+"
+                                    "Total.*stress"
+                                    "trainingsummary"
+                                    )))
+         ;; (matching (--filter (or (s-matches? "[0-9]+ W[0-9]+" it)
+         ;;                         (s-matches? "Total.*stress" it)
+         ;;                         (s-matches? "trainingsummary" it))
+         ;;                     contents))
+         (matching (--filter (s-matches? rx-to-match it) contents))
+         (pairs (map-pairs matching))
+         (tidied (--map `(,(s-replace-regexp "^\*+ +" "" (car it))
+                          ,(s-replace-regexp ".*:: +" "" (cdr it)))
+                        pairs))
+         (strings (--map (format "%s -- TSS %s" (car it) (cadr it))
+                         tidied))
+         (joined (s-join "\n" (--filter (not (s-matches? "trainingsummary" it))
+                                        strings)))
+         (header "Cycling -- TSS per week (from cycling.org)")
+         (underline (s-repeat (length header) "=")))
+    (cd/string-to-special-buffer (s-join "\n" `(,header ,underline ,joined)) "*cycling-tss*")))
+#+END_SRC
+* Eval previous elisp expression and insert result as comment
+
+#+BEGIN_SRC emacs-lisp
+(defun eval-into-comment ()
+  "Eval the current elisp expression and insert a comment with result."
+  (interactive)
+  (let ((sexp (elisp--preceding-sexp)))
+    (save-excursion
+      (goto-char (line-end-position))
+      (delete-horizontal-space)
+      (insert " ;; " (prin1-to-string (eval sexp))))))
+#+END_SRC

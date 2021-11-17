@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: ymd
+# key: ymd
+# condition: t
+# --
+`(format-time-string "%Y-%m-%d")`

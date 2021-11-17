@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: trainingsummary
+# key: trainingsummary
+# condition: t
+# --
+- Total Training Stress Score :: (+ ${1:MON} ${3:TUE} ${5:WED} ${7:THU} ${9:FRI} ${11:SAT} ${13:SUN})
+- Total Training Duration :: (+ ${2:MON} ${4:TUE} ${6:WED} ${8:THU} ${10:FRI} ${12:SAT} ${14:SUN})

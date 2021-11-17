@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: annotate-inline
+# key: cdi
+# condition: t
+# --
+/(cd: $1)/$0

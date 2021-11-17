@@ -1,0 +1,220 @@
+# A valid snippet should starts with:
+#
+#		snippet trigger_word [ "description" [ options ] ]
+#
+# and end with:
+#
+#		endsnippet
+#
+# Snippet options:
+#
+#		b - Beginning of line.
+#		i - In-word expansion.
+#		w - Word boundary.
+#		r - Regular expression
+#		e - Custom context snippet
+#		A - Snippet will be triggered automatically, when condition matches.
+
+snippet qq "Quick quote"
+*"$1"*
+endsnippet
+
+snippet cdi "My annotation"
+*(cd: $1)*
+endsnippet
+
+snippet cdq "My quote annotation"
+
+> cd: $1
+
+endsnippet
+
+
+snippet i "Italic"
+*$1*
+endsnippet
+
+snippet b "Bold"
+**$1**
+endsnippet
+
+snippet bi "Bold italic"
+***$1***
+endsnippet
+
+snippet ic "Italic, from clipboard" wA
+*${1:`!v getreg("*")`}*$0
+endsnippet
+
+snippet bc "Bold, from clipboard" wA
+**${1:`!v getreg("*")`}**$0
+endsnippet
+
+
+snippet bic "Bold Italic, from clipboard" wA
+***${1:`!v getreg("*")`}***$0
+endsnippet
+
+snippet ``` "Codeblock, pasting clipboard"
+\`\`\`${1}
+${0:`!v getreg("*")`}
+\`\`\`
+endsnippet
+
+snippet noun "Bold 'Nounify' something"
+**'${1}'**
+endsnippet
+
+snippet iq "Italic 'Nounify' something" 
+*'${1}'* 
+endsnippet
+
+snippet music "Artist - _Album_"
+$1 - _$2_
+endsnippet
+
+snippet urlc "Link from clipboard"
+[$1](${0:`!v getreg("*")`})$2
+endsnippet
+
+snippet cal "Calender entry"
+| ${1:DATE} | ${2:WHAT} |
+endsnippet
+
+snippet bq "Bold quote"
+**"${1:QUOTE}"**
+endsnippet
+
+snippet recipe "Recipe"
+# ${1:name}
+
+## Ingredients
+
+- ${2:ingredient}
+
+## Method
+
+1. ${3:step1}
+endsnippet
+
+snippet ?? "Spanish question"
+¿${1:que}?
+endsnippet
+snippet que "Spanish question"
+¿${1:que}?
+endsnippet
+
+snippet lbtoday "TODAY section for logbook"
+**TODAY**
+
+1.  [ ] ${1:task 1}
+2.  [ ] ${2:task 2}
+3.  [ ] ${3:task 3}
+endsnippet
+
+snippet `<
+`<${1}>`
+endsnippet
+
+snippet weeklyreview
+## `!v strftime("%Y-%m-%d")`
+
+**Guitar**:
+
+**Fitness**:
+
+**Diet**:
+
+**Reading**:
+
+**Work**:
+
+**Thesis**:
+
+**Thoughts**:
+
+**Next Focus...**:
+endsnippet
+
+snippet recipe
+# ${1:name}
+
+## Ingredients
+
+- ${2:ingredient 1...}
+
+## Method
+
+1. ${3:step 1...}
+endsnippet
+
+priority 10
+snippet "hat" "hat" ri
+\hat{$1}$0
+endsnippet
+
+# priority 100
+# snippet "([a-zA-Z])hat" "hat" ri
+# \hat{`!p snip.rv=match.group(1)`}
+# endsnippet
+
+priority 10
+snippet "bar" "bar" ri
+\overline{$1}$0
+endsnippet
+
+# priority 100
+# snippet "([a-zA-Z])bar" "bar" ri
+# \overline{`!p snip.rv=match.group(1)`}
+# endsnippet
+
+snippet posneg "±ve" A
+±ve
+endsnippet
+
+snippet mk "Inline Math" wA
+$${1}$`!p
+if t[2] and t[2][0] not in [',', '.', '?', '-', ' ']:
+    snip.rv = ' '
+else:
+    snip.rv = ''
+`$2
+endsnippet
+
+snippet dm "Display Math" wA
+\[
+$1
+.\] $0
+endsnippet
+
+snippet // "Fraction" iA
+\\frac{$1}{$2}$0
+endsnippet
+
+snippet TEXT "Text in latex math" iA
+\\textrm{$1}$0
+endsnippet
+
+snippet FURL "File Link" A
+[${2:title}](./$1)$0
+endsnippet
+
+snippet mdsec "Markdown section" b
+***${1:section}***
+
+- ${2:notes}
+endsnippet
+
+snippet WRITEUP "Article writeup" bA
+## Action Points
+
+- ...
+
+## Takeaways
+
+- ...
+
+## Notes
+
+- ${1:notes}
+endsnippet

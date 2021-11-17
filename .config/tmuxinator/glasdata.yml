@@ -1,0 +1,11 @@
+# /home/davison/.config/tmuxinator/glasdata.yml
+
+name: glasdata
+root: ~/code/iof-glasdata/iof-glasdata
+
+windows:
+  - editor:
+      layout: even-horizontal
+      panes:
+        - vim src/afimilk.rs src/fullwood.rs srf/glasdata.rs
+  - build: cargo watch -x check

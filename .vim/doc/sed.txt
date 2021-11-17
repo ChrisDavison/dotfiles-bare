@@ -1,0 +1,4 @@
+Notes about sed *sed* *sfsed* <<<
+
+Swapping word's in stream (I know, you don't need the cat)
+ cat Myfile.h|sed 's/foo/fyy/g'

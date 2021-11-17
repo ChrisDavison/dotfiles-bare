@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: annotate
+# key: cd
+# condition: t
+# --
+/cd: $1/$0

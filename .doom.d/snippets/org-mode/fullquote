@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: fullquote
+# key: fq
+# uuid:
+# condition: t
+# --
+/"${1:what}"/ -- ${2:who}

@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: Strength Review
+# key: strreview
+# condition: t
+# --
+Strength Review
+:PROPERTIES:
+:PROJECT: strength
+:END:
+
+$0

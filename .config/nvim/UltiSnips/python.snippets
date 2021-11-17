@@ -1,0 +1,18 @@
+snippet dbg "Maybe debug"
+if DEBUG:
+	print(f"$1")
+endsnippet
+
+snippet impa "Import X as Y"
+import ${0:module} as ${1:alias}
+endsnippet
+
+snippet main "If-main" bA
+def main():
+	raise "NOT IMPLEMENTED"
+
+
+if __name__ == "__main__":
+	${1:setup code}
+	main()
+endsnippet

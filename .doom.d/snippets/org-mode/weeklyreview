@@ -1,0 +1,18 @@
+# -*- mode: snippet -*-
+# name: weeklyreview
+# key: weeklyreview
+# condition: t                                      
+# --
+`(format-time-string "%Y-%m-%d")` -- Weekly Review
+
+- *Personal*
+    + Guitar -- $1
+    + Fitness -- $2
+    + Reading -- $3
+- *Thoughts*
+    + $4
+- *Work*
+    + Thesis -- $5
+    + Work -- $6
+- *Next Focus...*
+    + $7
