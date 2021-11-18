@@ -12,6 +12,35 @@ if [[ -x "$HOME/.bin/nvim.appimage" ]]; then
     HAS_NVIM_APPIMAGE=1
 fi
 
+#########
+## path #
+#########
+export PATH="$HOME/bin":$PATH
+export PATH="$HOME/.bin":$PATH
+export PATH="$HOME/.fzf/bin":$PATH
+export PATH="$HOME/.cargo/bin":$PATH
+export PATH="$HOME/go/bin":$PATH
+export PATH="$HOME/.local/bin":$PATH
+export PATH="$HOME/.local/go/bin":$PATH
+export PATH="$HOME/.anaconda3/bin":$PATH
+export PATH="$HOME/.wasmtime/bin":$PATH
+export PATH="$HOME/.npm-packages/bin":$PATH
+export PATH="/usr/local/go/bin":$PATH
+export PATH="/usr/share/node/bin":$PATH
+export PATH="/usr/share/node/bin":$PATH
+export PATH="$HOME/.poetry/bin:$PATH"
+
+scriptdir="$DOTFILES/scripts"
+scriptdir="$HOME/code/scripts"
+export PATH="$scriptdir":$PATH
+for dir in $(find $scriptdir -type d | grep -v '\.git'); do
+    export PATH="$dir":$PATH
+done
+
+# remove duplicates from path
+typeset -U path
+typeset -U PATH
+
 ############
 ## exports #
 ############
@@ -41,37 +70,7 @@ export RUST_SRC_PATH=$(rustc --print sysroot)/lib/rustlib/src/rust/library
 export VIRTUAL_ENV_DISABLE_PROMPT=0
 export WASMTIME_HOME="$HOME/.wasmtime"
 export WORKON_HOME="$HOME/.envs"
-
-#########
-## path #
-#########
-export PATH="$HOME/bin":$PATH
-export PATH="$HOME/.bin":$PATH
-export PATH="$HOME/.fzf/bin":$PATH
-export PATH="$HOME/.cargo/bin":$PATH
-export PATH="$HOME/go/bin":$PATH
-export PATH="$HOME/.local/bin":$PATH
-export PATH="$HOME/.local/go/bin":$PATH
-export PATH="$HOME/.anaconda3/bin":$PATH
-export PATH="$HOME/.wasmtime/bin":$PATH
-export PATH="$HOME/.npm-packages/bin":$PATH
-export PATH="/usr/local/go/bin":$PATH
-export PATH="/usr/share/node/bin":$PATH
-export PATH="/usr/share/node/bin":$PATH
-
-scriptdir="$DOTFILES/scripts"
-scriptdir="$HOME/code/scripts"
-export PATH="$scriptdir":$PATH
-for dir in $(find $scriptdir -type d | grep -v '\.git'); do
-    export PATH="$dir":$PATH
-done
-
-# remove duplicates from path
-typeset -U path
-typeset -U PATH
-
 export MANPAGER="less -R"
-
 
 ###########
 ## setopt #
@@ -103,8 +102,6 @@ setopt interactive_comments # Allow comments in interactive shells
 
 set -o emacs
 
-
-
 ###############
 ## completion #
 ###############
@@ -115,8 +112,6 @@ zstyle ':completion:::::' completer _expand _complete _ignored _approximate #ena
 
 autoload -Uz compinit; compinit -i
 autoload zmv
-
-
 
 #############
 ## keybinds #
@@ -469,6 +464,11 @@ fancy_prompt() {
     RPROMPT=""
 }
 
+### END OF PROMPT
+
+function config() {
+   /usr/bin/git --git-dir=$HOME/.dotfiles --work-tree=$HOME $@
+}
 
 source $DOTFILES/prompt.zsh && fancy_prompt
 
@@ -494,8 +494,3 @@ antigen bundle zsh-users/zsh-autosuggestions
 antigen bundle colored-man-pages
 antigen apply
 
-# if [[ -z "$TMUX" ]]; then
-#     tmux attach -t notes || tmux new -s notes
-# fi
-
-export PATH="$HOME/.poetry/bin:$PATH"
