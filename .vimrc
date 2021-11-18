@@ -6,37 +6,32 @@ let mapleader=" "
 call plug#begin('~/.vim/plugins')
 
 " Utility
+" Plug 'SirVer/ultisnips'       " Snippet expander -- disabled. using coc-snippets
 Plug 'airblade/vim-rooter'           " Automatically cwd when in a project
+Plug 'chrisdavison/vim-checkmark', {'for': 'markdown'}  " Toggle checkboxes
 Plug 'chrisdavison/vim-colourtoggle'  " Define and switch between light/dark themes
 Plug 'chrisdavison/vim-datedfiles'   " Create files with some kind of date in name
+Plug 'chrisdavison/vim-insertlink', {'for': 'markdown'} " Insert other file as markdown link
 Plug 'chrisdavison/vim-tagsearch'
+Plug 'christoomey/vim-tmux-navigator'  " Navigate across buffers & tmux panes
+Plug 'dahu/vim-fanfingtastic'     " 'f' across newlines
+Plug 'dkarter/bullets.vim',         {'for': 'markdown'} " Continue lists automatically
+Plug 'ggandor/lightspeed.nvim'    " Press s<char1><char2> to easily navigate buffers
+Plug 'honza/vim-snippets'     " Snippets for various languages
 Plug 'junegunn/fzf',              { 'dir': '~/.fzf', 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'justinmk/vim-dirvish'       " Better directory listing
 Plug 'kana/vim-textobj-user'
 Plug 'konfekt/fastfold'              " Smarter/faster updating of folds
 Plug 'mg979/vim-visual-multi'
-Plug 'troydm/zoomwintab.vim'  " <C-w>o to temporarily focus a buffer, like tmux <PREFIX>z
+Plug 'neoclide/coc.nvim',         {'branch': 'release'}  " Completion
+Plug 'romainl/vim-qf'
 Plug 'tpope/vim-commentary'   " Easily comment ..stuff..
+Plug 'tpope/vim-fugitive'     " Git in vim
 Plug 'tpope/vim-surround'     " 'Surround' text object
 Plug 'tpope/vim-unimpaired'   " adds pairs of keybinds like ]b [b
+Plug 'troydm/zoomwintab.vim'  " <C-w>o to temporarily focus a buffer, like tmux <PREFIX>z
 Plug 'wellle/targets.vim'      
-Plug 'neoclide/coc.nvim',         {'branch': 'release'}  " Completion
-Plug 'tpope/vim-fugitive'     " Git in vim
-" Plug 'SirVer/ultisnips'       " Snippet expander
-Plug 'honza/vim-snippets'     " Snippets for various languages
-
-" Navigation and code viewing
-Plug 'romainl/vim-qf'
-Plug 'christoomey/vim-tmux-navigator'  " Navigate across buffers & tmux panes
-Plug 'dahu/vim-fanfingtastic'     " 'f' across newlines
-Plug 'andymass/vim-matchup'       " Make % match more 'pairs' (e.g. IF ELSE ENDIF)
-Plug 'ggandor/lightspeed.nvim'    " Press s<char1><char2> to easily navigate buffers
-
-" Better writing experience
-Plug 'chrisdavison/vim-checkmark', {'for': 'markdown'}  " Toggle checkboxes
-Plug 'chrisdavison/vim-insertlink', {'for': 'markdown'} " Insert other file as markdown link
-Plug 'dkarter/bullets.vim',         {'for': 'markdown'} " Continue lists automatically
 
 " Language support
 Plug 'vim-pandoc/vim-pandoc'
@@ -174,17 +169,8 @@ vnoremap >      >gv
 " Make j and k work, even on visually-wrapped (not hard-wrapped) lines
 nnoremap <expr> j      (v:count == 0? 'gj' : 'j')
 nnoremap <expr> k      (v:count == 0? 'gk' : 'k')
-nnoremap D      dd
-nnoremap Y      y$
 " Easier rebind to go to the previously used buffer
 nnoremap <BS>   <C-^>
-
-" When jumping to a search pattern, center it in view
-nnoremap <silent> n nzz
-nnoremap <silent> N Nzz
-nnoremap <silent> * *zz
-nnoremap <silent> # #zz
-nnoremap <silent> g* g*zz
 
 " very magic search by default
 nnoremap ? ?\v
@@ -333,9 +319,7 @@ command! ReadingTime exec "!readtime " . expand("%")
 command! WordCount exec "!wc " . expand('%')
 cnoreabbrev WC WordCount
 
-command! -nargs=1 -complete=customlist,tagsearch#knowledge_projects Projects exec ":edit " . expand(g:knowledge_dir) . <q-args>
-command! ProjectsFZF call tagsearch#knowledge_projects_fzf()
-nnoremap <leader>P :ProjectsFZF<CR>
+nnoremap <leader>P :TagsearchListFZF project<CR>
 
 " ---------------------------
 " Journal, Logbook, and Inbox
@@ -390,13 +374,6 @@ if wsl#is_wsl()
     call wsl#setup()
 endif
 
-function! s:edit_ftplugin() abort
-    exec ":edit " . expand("~/.vim/after/ftplugin/" . &ft . ".vim")
-endfunction
-
-command! EditFTPlugin call <sid>edit_ftplugin()
-
-
 " autocommands {{{1
 augroup vimrc
     autocmd!
@@ -411,14 +388,9 @@ augroup vimrc
 
     au User CocJumpPlaceholder call CocActionSync('showSignatureHelp')
 
-    " Zen writing
-    au User GoyoEnter nested call goyo_util#limelight_on_and_tmux_off()
-    au User GoyoLeave nested call goyo_util#limelight_off_and_tmux_on()
-
     " markdown
     au BufNewFile *.md call markdown#filename_as_header()
     au BufEnter *.md setlocal ft=markdown.pandoc
-    au BufRead logbook*.md norm zCG
 
     " Goto last location in non-empty files
     au BufReadPost *  if line("'\"") > 1 && line("'\"") <= line("$")
@@ -435,14 +407,6 @@ augroup vimrc
 
     au Filetype snippets setlocal formatoptions-=a 
     au Filetype python setlocal formatoptions-=a iskeyword=a-z,A-Z,_,48-57
-    au Filetype python nnoremap <buffer> <leader>r :exec 'SlimeSend1 %run ' . expand('%:t')<CR>
     au Colorscheme * call myfuncs#set_codelens_colours()
 augroup END
-
-" TEMPORARY {{{1
-command! -nargs=1 LargestNotes call myfuncs#large_notes_as_quickfix(<q-args>)<bar>:cw
-
-nnoremap <F10> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<'
-\ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
-\ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 
