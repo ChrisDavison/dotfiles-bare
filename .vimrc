@@ -208,6 +208,9 @@ nnoremap <leader>G :GFiles?<cr>
 nnoremap <leader><leader> :Notes<CR>
 nnoremap <leader>B :BLines<CR>
 
+nnoremap <leader>t :TagsearchListFZF
+nnoremap <leader>T :TagsearchLong<CR>
+
 command! Notes :call fzf#vim#files(g:knowledge_dir, {'source': 'fd -e md'})
 
 " Navigate to specific files
@@ -330,7 +333,9 @@ command! ReadingTime exec "!readtime " . expand("%")
 command! WordCount exec "!wc " . expand('%')
 cnoreabbrev WC WordCount
 
-command! -nargs=1 -complete=customlist,tagsearch#knowledge_projects Projects edit <q-args>
+command! -nargs=1 -complete=customlist,tagsearch#knowledge_projects Projects exec ":edit " . expand(g:knowledge_dir) . <q-args>
+command! ProjectsFZF call tagsearch#knowledge_projects_fzf()
+nnoremap <leader>P :ProjectsFZF<CR>
 
 " ---------------------------
 " Journal, Logbook, and Inbox
