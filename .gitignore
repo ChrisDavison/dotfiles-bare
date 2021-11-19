@@ -17,6 +17,7 @@
 !.zshrc
 **/hooks/*
 *.vim
+*.vi
 *.zip
 .airflow/*
 .antigen/.*

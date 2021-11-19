@@ -362,7 +362,12 @@ command! -nargs=+ GrepWork    call grep#location(<q-args>, g:knowledge_dir . "wo
 command! -nargs=+ GrepNotes   call grep#location(<q-args>, g:knowledge_dir)
 cnoreabbrev GN GrepNotes
 
-command! -nargs=+ -complete=file JumpToHeading call markdown#jump_to_heading(<q-args>)
+function! s:open_file_and_jump_to_heading() abort
+    call fzf#run(fzf#wrap({
+                \ 'source': systemlist('fd -e md'),
+                \ 'sink': function('markdown#jump_to_heading')}))
+endfunction
+command! -nargs=0 JumpToHeading call <sid>open_file_and_jump_to_heading()
 
 command! FileMarks marks ABCDEFGHIJKLMNOPQRSTUVWXYZ
 
@@ -377,36 +382,27 @@ endif
 " autocommands {{{1
 augroup vimrc
     autocmd!
+    au BufWritePost .vimrc,init.vim nested source $MYVIMRC
     au TextChanged,InsertLeave,FocusLost * silent! wall
     au CursorHold * silent! checktime " Check for external changes to files
     au VimResized * wincmd= " equally resize splits on window resize
-    au BufWritePost .vimrc,init.vim nested source $MYVIMRC
     au BufWritePost * redraw
-
-    au Filetype make setlocal noexpandtab
-    au BufRead,BufNewFile *.latex setlocal filetype=tex
-
+    au BufWritePre *.go :call CocAction('runCommand', 'editor.action.organizeImport')
     au User CocJumpPlaceholder call CocActionSync('showSignatureHelp')
-
-    " markdown
-    au BufNewFile *.md call markdown#filename_as_header()
-    au BufEnter *.md setlocal ft=markdown.pandoc
-
+    au Colorscheme * call myfuncs#set_codelens_colours()
     " Goto last location in non-empty files
     au BufReadPost *  if line("'\"") > 1 && line("'\"") <= line("$")
                    \|     exe "normal! g`\""
                    \|  endif
-
-    " When using treesitter, can get smarter folding
+    " filetype-specific config...but not enough for an ftplugin
+    au Filetype make setlocal noexpandtab
+    au BufRead,BufNewFile *.latex setlocal filetype=tex
+    au BufNewFile *.md call markdown#filename_as_header()
+    au BufEnter *.md setlocal ft=markdown.pandoc
     au Filetype vim setlocal foldmethod=marker
     au Filetype go,rust,python,zsh,bash,sh
                 \ setlocal foldmethod=expr
                 \ foldexpr=nvim_treesitter#foldexpr()
-
-    au BufWritePre *.go :call CocAction('runCommand', 'editor.action.organizeImport')
-
     au Filetype snippets setlocal formatoptions-=a 
     au Filetype python setlocal formatoptions-=a iskeyword=a-z,A-Z,_,48-57
-    au Colorscheme * call myfuncs#set_codelens_colours()
 augroup END
-
